@@ -5519,7 +5519,8 @@ function Astral:MakeWindow(config)
 				end
 				countdownToken = countdownToken + 1
 				local myToken = countdownToken
-				local value = math.max(0, math.floor(tonumber(seconds) or 0))
+				local total = math.max(0, math.floor(tonumber(seconds) or 0))
+				local anchor = os.clock()
 				local function write(txt)
 					if where == "badge" then
 						LabelController:SetStatus("waiting", prefix .. txt .. suffix)
@@ -5530,15 +5531,17 @@ function Astral:MakeWindow(config)
 				task.spawn(function()
 					while true do
 						if countdownToken ~= myToken then return end
-						write(fmtTime(value))
+						local elapsed = math.floor(os.clock() - anchor)
+						local value = total
 						if mode == "up" then
-							task.wait(1)
-							value = value + 1
+							value = total + elapsed
 						else
-							if value <= 0 then break end
-							task.wait(1)
-							value = value - 1
+							value = total - elapsed
 						end
+						if value < 0 then value = 0 end
+						write(fmtTime(value))
+						if mode ~= "up" and value <= 0 then break end
+						task.wait(1)
 					end
 					if mode ~= "up" and countdownToken == myToken then
 						if where == "badge" then
@@ -9795,19 +9798,22 @@ CountPillStroke.Color = themeColorFor("50,50,55", CurrentThemeName or "Dark")
 			local row = rows[name]
 			row.token = (row.token or 0) + 1
 			local myToken = row.token
-			local value = math.max(0, math.floor(tonumber(seconds) or 0))
+			local total = math.max(0, math.floor(tonumber(seconds) or 0))
+			local anchor = os.clock()
 			task.spawn(function()
 				while true do
 					if row.token ~= myToken then return end
-					row.Value.Text = fmtDuration(value)
+					local elapsed = math.floor(os.clock() - anchor)
+					local value = total
 					if mode == "up" then
-						task.wait(1)
-						value = value + 1
+						value = total + elapsed
 					else
-						if value <= 0 then break end
-						task.wait(1)
-						value = value - 1
+						value = total - elapsed
 					end
+					if value < 0 then value = 0 end
+					row.Value.Text = fmtDuration(value)
+					if mode ~= "up" and value <= 0 then break end
+					task.wait(1)
 				end
 				if row.token == myToken and mode ~= "up" and onDone then task.spawn(onDone) end
 			end)
