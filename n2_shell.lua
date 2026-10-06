@@ -124,6 +124,13 @@ function Astral:SetLanguage(langName)
 	end)
 end
 
+function Astral:GetLanguages()
+	local out = {}
+	for name in pairs(Astral.Languages) do table.insert(out, name) end
+	table.sort(out)
+	return out
+end
+
 -- Register a label's English text for live translation.
 -- Optional prop lets inputs translate other string props too:
 -- tr(SearchInput, "Search...", "PlaceholderText")
@@ -2433,8 +2440,14 @@ function Astral:MakeWindow(config)
 
 			for _, option in ipairs(options) do
 				local optionStr = tostring(option)
-				if filter and filter ~= "" and not string.find(string.lower(optionStr), string.lower(filter), 1, true) then
-					continue
+				local shownStr = translateText(optionStr)
+				if filter and filter ~= "" then
+					local f = string.lower(filter)
+					local hitO = string.find(string.lower(optionStr), f, 1, true)
+					local hitS = string.find(string.lower(shownStr), f, 1, true)
+					if not hitO and not hitS then
+						continue
+					end
 				end
 
 				local isSelected = false
@@ -2508,7 +2521,7 @@ function Astral:MakeWindow(config)
 				OptionLabel.Size = UDim2.new(1, -26, 1, 0)
 				OptionLabel.BackgroundTransparency = 1
 				OptionLabel.Font = Enum.Font.GothamBold
-				OptionLabel.Text = optionStr
+				OptionLabel.Text = shownStr
 				OptionLabel.TextColor3 = isSelected and AccentColor or themeColorFor("232,232,237", CurrentThemeName or "Dark")
 				mTS(OptionLabel, 12)
 				OptionLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -2581,7 +2594,9 @@ function Astral:MakeWindow(config)
 									table.insert(selectedList, optStr)
 									end
 							end
-						local newText = #selectedList > 0 and table.concat(selectedList, ", ") or translateText("None")
+						local dispList = {}
+							for _, s in ipairs(selectedList) do table.insert(dispList, translateText(s)) end
+						local newText = #dispList > 0 and table.concat(dispList, ", ") or translateText("None")
 						buttonTextLabel.Text = newText
 						SelectorPanelTitle.Text = #selectedList > 0 and (translateText(title) .. " (" .. #selectedList .. ")") or translateText(title)
 							if callback then
@@ -2589,7 +2604,7 @@ function Astral:MakeWindow(config)
 							end
 							populate(SearchInput.Text)
 						else
-							buttonTextLabel.Text = optionStr
+							buttonTextLabel.Text = translateText(optionStr)
 							if callback then
 								task.spawn(callback, option)
 							end
@@ -2843,14 +2858,29 @@ function Astral:MakeWindow(config)
 			if pickerOpen or selectorOpen then return end
 			if not settingsTabData then
 				local STab = Window:MakeTab({ "Settings", "Badge Gear" })
-				local aboutSub = STab:AddSubTab({ Name = "About", Icon = "Home" })
-				aboutSub:AddLabel({ Title = "Lumu UI", Description = "Themes, background, status & info live here.", Icon = "Home" })
-				aboutSub:AddButton({ Title = "Reset UI positions", Icon = "Badge Gear", Callback = function()
-					pcall(function() Window:ResetUIPositions() end)
+				-- 1) INFO: about + owners + discord invite
+				local infoSub = STab:AddSubTab({ Name = "Info", Icon = "Home" })
+				infoSub:AddLabel({ Title = "Lumu UI", Description = "Themes, background, status & info live here.", Icon = "Home" })
+				infoSub:AddLabel({ Title = "Owners", Description = "Velaric ΓÇó kismile ΓÇó Lucas ΓÇó Xu", Icon = "Home" })
+				infoSub:AddButton({ Title = "Discord invite", Description = "Copy the invite link.", Icon = "Checkmark", Callback = function()
+					local link = "https://discord.gg/RhQa6kZu9A"
+					local ok2 = false
+					pcall(function() if setclipboard then setclipboard(link); ok2 = true end end)
+					pcall(function() Window:Notify({ Type = ok2 and "good" or "warning", Title = ok2 and "Copied" or "Copy this", Message = link, Duration = 4 }) end)
 				end })
-				aboutSub:AddButton({ Title = "Refresh UI", Icon = "Checkmark", Callback = function()
-					pcall(function() Window:RefreshAll() end)
-				end })
+				-- 2) TRANSLATION: custom packs, no Google. Hubs add words BEFORE CreateWindow.
+				local langSub = STab:AddSubTab({ Name = "Translation", Icon = "Home" })
+				langSub:AddLabel({ Title = "Language", Description = "Custom translations, no Google. Everything incl. dropdown options swaps live.", Icon = "Home" })
+				do
+					local langs = {}
+					pcall(function() if Astral.GetLanguages then langs = Astral.GetLanguages() end end)
+					if #langs == 0 then langs = { "English" } end
+					langSub:AddSelector({ Title = "Language", Options = langs, Default = Astral.CurrentLanguage or "English", Icon = "Home", Callback = function(v)
+						pcall(function() Astral:SetLanguage(v) end)
+						pcall(function() Window:Notify({ Type = "good", Title = "Language", Message = tostring(v), Duration = 2 }) end)
+					end })
+				end
+				-- 3) THEMES: presets + custom + background + transparency (merged)
 				local themeSub = STab:AddSubTab({ Name = "Themes", Icon = "Chromatic Key1" })
 				themeSub:AddSelector({ Title = "Theme", Description = "Recolor the whole UI live.", Options = { "Dark", "Midnight", "Purple", "Crimson", "Forest", "Ocean", "Sunset", "Rose", "Slate", "Coffee" }, Icon = "Chromatic Key1", Callback = function(v)
 					pcall(function() Window:SetTheme(v) end)
@@ -2861,22 +2891,29 @@ function Astral:MakeWindow(config)
 				themeSub:AddButton({ Title = "Custom theme", Icon = "Badge Gear", Callback = function()
 					pcall(function() Window:SetCustomTheme({ Background = Color3.fromRGB(10, 10, 14), Card = Color3.fromRGB(20, 22, 34), Accent = Color3.fromRGB(138, 90, 255) }) end)
 				end })
-				local bgSub = STab:AddSubTab({ Name = "Background", Icon = "Home" })
-				bgSub:AddButton({ Title = "BG image 1", Icon = "Checkmark", Callback = function()
+				themeSub:AddButton({ Title = "BG image 1", Icon = "Checkmark", Callback = function()
 					pcall(function() Window:SetBackground("rbxassetid://138732103165145") end)
 				end })
-				bgSub:AddButton({ Title = "BG image 2", Icon = "Checkmark", Callback = function()
+				themeSub:AddButton({ Title = "BG image 2", Icon = "Checkmark", Callback = function()
 					pcall(function() Window:SetBackground("rbxassetid://74936679753141") end)
 				end })
-				bgSub:AddSlider({ Title = "BG dim", Min = 0, Max = 100, Default = 35, Icon = "Badge Gear", Callback = function(v)
+				themeSub:AddSlider({ Title = "BG dim", Min = 0, Max = 100, Default = 35, Icon = "Badge Gear", Callback = function(v)
 					pcall(function() Window:SetBackgroundDim(v / 100) end)
 				end })
-				bgSub:AddSlider({ Title = "UI transparency", Min = 0, Max = 70, Default = 0, Icon = "Badge Gear", Callback = function(v)
+				themeSub:AddSlider({ Title = "UI transparency", Min = 0, Max = 70, Default = 0, Icon = "Badge Gear", Callback = function(v)
 					pcall(function() Window:SetTransparency(v / 100) end)
 				end })
-				bgSub:AddButton({ Title = "Reset BG", Icon = "Close", Callback = function()
+				themeSub:AddButton({ Title = "Reset BG", Icon = "Close", Callback = function()
 					pcall(function() Window:ResetBackground() end)
 				end })
+				-- 4) UI: sidebar/topbar choice. Saved only ΓÇö loads on NEXT execute, never now.
+				local uiSub = STab:AddSubTab({ Name = "UI", Icon = "Badge Gear" })
+				uiSub:AddLabel({ Title = "Layout", Description = "Applies NEXT execute, not now.", Icon = "Badge Gear" })
+				uiSub:AddSelector({ Title = "Design", Options = { "Sidebar", "TopBar" }, Default = Window:GetDesign(), Icon = "Badge Gear", Callback = function(v)
+					pcall(function() if Astral.SetSavedDesign then Astral.SetSavedDesign(v) end end)
+					pcall(function() Window:Notify({ Type = "good", Title = "Saved", Message = "Next execute loads " .. tostring(v) .. ".", Duration = 4 }) end)
+				end })
+				-- 5) STATUS
 				local statusSub = STab:AddSubTab({ Name = "Status", Icon = "timer" })
 				statusSub:AddToggle({ Title = "Show status panels", Default = true, Icon = "timer", Callback = function(s)
 					for _, sp in ipairs(statusPanels) do
@@ -2891,6 +2928,7 @@ function Astral:MakeWindow(config)
 				statusSub:AddSlider({ Title = "Panel size", Min = 70, Max = 130, Default = 100, Icon = "timer", Callback = function(v)
 					pcall(function() Window:SetStatusScale(v / 100) end)
 				end })
+				-- 6) DISPLAY
 				local displaySub = STab:AddSubTab({ Name = "Display", Icon = "Badge Gear" })
 				displaySub:AddSlider({ Title = "UI size", Min = 70, Max = 130, Default = 100, Icon = "Badge Gear", Callback = function(v)
 					pcall(function() Window:SetUIScale(v / 100) end)
@@ -2914,6 +2952,19 @@ function Astral:MakeWindow(config)
 				displaySub:AddButton({ Title = "Replay intro", Icon = "Checkmark", Callback = function()
 					pcall(function() Window:PlayIntro() end)
 				end })
+				-- 7) DEBUG
+				local dbgSub = STab:AddSubTab({ Name = "Debug", Icon = "Badge Gear" })
+				dbgSub:AddButton({ Title = "Reset UI positions", Icon = "Badge Gear", Callback = function()
+					pcall(function() Window:ResetUIPositions() end)
+				end })
+				dbgSub:AddButton({ Title = "Refresh UI", Icon = "Checkmark", Callback = function()
+					pcall(function() Window:RefreshAll() end)
+				end })
+				dbgSub:AddButton({ Title = "Debug info", Description = "Prints to console (F9).", Icon = "Badge Gear", Callback = function()
+					pcall(function() Window:DebugInfo() end)
+					pcall(function() Window:Notify({ Type = "good", Title = "Debug", Message = "Printed to console (F9).", Duration = 2 }) end)
+				end })
+				-- 8) CONFIGS
 				local configSub = STab:AddSubTab({ Name = "Configs", Icon = "Home" })
 				local cfgName = "lumu_config.json"
 				configSub:AddTextbox({ Title = "Config name", Placeholder = "lumu_config.json", Callback = function(t)
@@ -2968,6 +3019,8 @@ function Astral:MakeWindow(config)
 					pcall(refreshFileList)
 					pcall(function() Window:Notify({ Type = "good", Title = "Rescanned", Message = "Config list updated.", Duration = 2 }) end)
 				end })
+
+
 				settingsTabData = tabs[#tabs]
 				pcall(function()
 					local tb = tabs[#tabs]
@@ -4803,14 +4856,16 @@ function Astral:MakeWindow(config)
 
 			local function updateValueLabel()
 				local list = selectedList()
-				if #list == 0 then
+				local disp = {}
+				for _, s in ipairs(list) do table.insert(disp, translateText(s)) end
+				if #disp == 0 then
 					ValueLabel.Text = translateText("Select...")
 					ValueLabel.TextColor3 = themeColorFor("160,160,165", CurrentThemeName or "Dark")
-				elseif #list > 2 then
-					ValueLabel.Text = string.format("%s, %s " .. translateText("(+%d more)"), list[1], list[2], #list - 2)
+				elseif #disp > 2 then
+					ValueLabel.Text = string.format("%s, %s " .. translateText("(+%d more)"), disp[1], disp[2], #disp - 2)
 					ValueLabel.TextColor3 = themeColorFor("255,255,255", CurrentThemeName or "Dark")
 				else
-					ValueLabel.Text = table.concat(list, ", ")
+					ValueLabel.Text = table.concat(disp, ", ")
 					ValueLabel.TextColor3 = themeColorFor("255,255,255", CurrentThemeName or "Dark")
 				end
 				if multi then
