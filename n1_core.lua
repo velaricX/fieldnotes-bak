@@ -8820,7 +8820,9 @@ function Astral:MakeWindow(config)
 	end
 	-- Manual window size override (preview PC vs mobile sizes live)
 	function Window:SetUIScale(p)
-		p = math.clamp(tonumber(p) or 1, 0.7, 1.3)
+		p = tonumber(p) or 1
+		if p > 10 then p = p / 100 end
+		p = math.clamp(p, 0.7, 1.3)
 		p = math.floor(p / 0.05 + 0.5) * 0.05
 		Window._UIScalePending = p
 		if Window._UIScaleBusy then return end
@@ -8874,7 +8876,12 @@ function Astral:MakeWindow(config)
 		end
 	end
 	function Window:SetLayoutMode(mode)
-		if mode ~= "OneColumn" and mode ~= "TwoColumn" then
+		local m = tostring(mode or ""):lower():gsub("%s+", "")
+		if m == "onecolumn" or m == "1column" or m == "1columns" or m == "1" or m == "single" then
+			mode = "OneColumn"
+		elseif m == "twocolumn" or m == "2column" or m == "2columns" or m == "2" or m == "double" then
+			mode = "TwoColumn"
+		else
 			mode = "Auto"
 		end
 		layoutMode = mode
