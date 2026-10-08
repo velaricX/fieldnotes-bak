@@ -5936,6 +5936,7 @@ function Astral:MakeWindow(config)
 			ServerIcon.Size = UDim2.new(0, 64, 0, 64)
 			ServerIcon.Position = UDim2.new(0, 14, 0, 78)
 			ServerIcon.Image = data.ServerIconId or "rbxassetid://106987676739927"
+			ServerIcon.ScaleType = Enum.ScaleType.Crop
 			ServerIcon.BackgroundColor3 = themeColorFor("30,30,36", CurrentThemeName or "Dark")
 			ServerIcon.BorderSizePixel = 0
 			ServerIcon.ZIndex = 2
@@ -5996,11 +5997,19 @@ function Astral:MakeWindow(config)
 			BadgeIcon.LayoutOrder = 2
 			BadgeIcon.Parent = NameFrame
 
+			-- Bottom action bar: counts left, Join right, one container (no float overlap)
+			local BottomBar = Instance.new("Frame")
+			BottomBar.Name = "BottomBar"
+			BottomBar.Size = UDim2.new(1, -28, 0, 44)
+			BottomBar.Position = UDim2.new(0, 14, 1, -48)
+			BottomBar.BackgroundTransparency = 1
+			BottomBar.Parent = MainFrame
+
 			local MetricsFrame = Instance.new("Frame")
 			MetricsFrame.Size = UDim2.new(0.5, 0, 0, 16)
-			MetricsFrame.Position = UDim2.new(0, 14, 1, -41)
+			MetricsFrame.Position = UDim2.new(0, 0, 0.5, -8)
 			MetricsFrame.BackgroundTransparency = 1
-			MetricsFrame.Parent = MainFrame
+			MetricsFrame.Parent = BottomBar
 
 			local MetricsLayout = Instance.new("UIListLayout")
 			MetricsLayout.FillDirection = Enum.FillDirection.Horizontal
@@ -6136,7 +6145,8 @@ function Astral:MakeWindow(config)
 			local ActionButton = Instance.new("TextButton")
 			ActionButton.Name = "JoinButton"
 			ActionButton.Size = UDim2.new(0, 104, 0, 34)
-			ActionButton.Position = UDim2.new(1, -118, 1, -50)
+			ActionButton.AnchorPoint = Vector2.new(1, 0.5)
+			ActionButton.Position = UDim2.new(1, 0, 0.5, 0)
 			ActionButton.BackgroundColor3 = Color3.fromRGB(30, 140, 78)
 			ActionButton.BorderSizePixel = 0
 			ActionButton.Text = "Join"
@@ -6144,7 +6154,7 @@ function Astral:MakeWindow(config)
 			mTS(ActionButton, 15)
 			ActionButton.TextColor3 = themeColorFor("255,255,255", CurrentThemeName or "Dark")
 			ActionButton.AutoButtonColor = false
-			ActionButton.Parent = MainFrame
+			ActionButton.Parent = BottomBar
 
 			local ButtonCorner = Instance.new("UICorner")
 			ButtonCorner.CornerRadius = UDim.new(0, 6)
