@@ -2762,90 +2762,15 @@ function Astral:MakeWindow(config)
 				-- 2) TRANSLATION: custom packs, no Google. Hubs add words BEFORE CreateWindow.
 				local langSub = STab:AddSubTab({ Name = "Translation", Icon = "Home" })
 				langSub:AddLabel({ Title = "Language", Description = "Custom translations, no Google. Everything incl. dropdown options swaps live.", Icon = "Home" })
-				local langSel = nil
-				local refreshLangUI = nil
 				do
 					local langs = {}
 					pcall(function() if Astral.GetLanguages then langs = Astral.GetLanguages() end end)
 					if #langs == 0 then langs = { "English" } end
-					langSel = langSub:AddSelector({ Title = "Language", Options = langs, Default = Astral.CurrentLanguage or "English", Icon = "Home", Callback = function(v)
+					langSub:AddSelector({ Title = "Language", Options = langs, Default = Astral.CurrentLanguage or "English", Icon = "Home", Callback = function(v)
 						pcall(function() Astral:SetLanguage(v) end)
 						pcall(function() Window:Notify({ Type = "good", Title = "Language", Message = tostring(v), Duration = 2 }) end)
-						pcall(function() if refreshLangUI then refreshLangUI() end end)
 					end })
 				end
-				local transCredit = langSub:AddLabel({ Title = "Translator", Description = "-", Icon = "Home" })
-				local function refreshCredit()
-					local lang = Astral.Languages[Astral.CurrentLanguage]
-					local who = lang and lang["TRANSLATOR"] or nil
-					pcall(function()
-						transCredit:SetDescription((who and who ~= "") and tostring(who) or "-")
-					end)
-				end
-				table.insert(languageRefreshers, refreshCredit)
-				refreshCredit()
-				local newLangBox = langSub:AddTextbox({ Title = "New language", Placeholder = "e.g. Portugues", Icon = "Home", Callback = function() end })
-				local keyBox = langSub:AddTextbox({ Title = "English word", Placeholder = "e.g. Farming", Icon = "Home", Callback = function() end })
-				local valBox = langSub:AddTextbox({ Title = "Translation", Placeholder = "e.g. Agricultura", Icon = "Home", Callback = function() end })
-				local wordCount = langSub:AddLabel({ Title = "Words", Description = "0 words", Icon = "Home" })
-				refreshLangUI = function()
-					local cur = Astral.CurrentLanguage or "English"
-					local n = 0
-					pcall(function() if Astral.CountWords then n = Astral.CountWords(cur) end end)
-					pcall(function() wordCount:SetDescription(tostring(n) .. " words in " .. tostring(cur)) end)
-					if langSel then
-						pcall(function()
-							local langs = Astral.GetLanguages and Astral.GetLanguages() or { "English" }
-							langSel:SetOptions(langs, cur)
-						end)
-					end
-				end
-				refreshLangUI()
-				langSub:AddButton({ Title = "Create language", Description = "Empty pack from the name box.", Icon = "Checkmark", Callback = function()
-					local name = ""
-					pcall(function() name = newLangBox:Get() end)
-					name = tostring(name or ""):match("^%s*(.-)%s*$")
-					if name == "" then
-						pcall(function() Window:Notify({ Type = "warning", Title = "Name first", Message = "Type a language name.", Duration = 2 }) end)
-						return
-					end
-					pcall(function() Astral:AddTranslations(name, {}) end)
-					pcall(function() Astral:SetLanguage(name) end)
-					pcall(function() refreshLangUI() end)
-					pcall(function() Window:Notify({ Type = "good", Title = "Created", Message = tostring(name), Duration = 2 }) end)
-				end })
-				langSub:AddButton({ Title = "Add / update word", Description = "Saves into the current language.", Icon = "Checkmark", Callback = function()
-					local cur = Astral.CurrentLanguage or "English"
-					if cur == "English" then
-						pcall(function() Window:Notify({ Type = "warning", Title = "Pick a language", Message = "Select a custom language first.", Duration = 2 }) end)
-						return
-					end
-					local k, v = "", ""
-					pcall(function() k = keyBox:Get() end)
-					pcall(function() v = valBox:Get() end)
-					k = tostring(k or ""):match("^%s*(.-)%s*$")
-					v = tostring(v or "")
-					if k == "" or v == "" then
-						pcall(function() Window:Notify({ Type = "warning", Title = "Both boxes", Message = "Fill word + translation.", Duration = 2 }) end)
-						return
-					end
-					pcall(function() Astral:AddTranslations(cur, { [k] = v }) end)
-					pcall(function() Astral:SetLanguage(cur) end)
-					pcall(function() refreshLangUI() end)
-				end })
-				langSub:AddButton({ Title = "Save language", Description = "Writes lumu_lang_<name>.json.", Icon = "Badge Gear", Callback = function()
-					local cur = Astral.CurrentLanguage or "English"
-					local ok2 = false
-					pcall(function() if Astral.SaveLanguage then ok2 = Astral.SaveLanguage(cur) end end)
-					pcall(function() Window:Notify({ Type = ok2 and "good" or "warning", Title = ok2 and "Saved" or "Save failed", Message = tostring(cur), Duration = 2 }) end)
-				end })
-				langSub:AddButton({ Title = "Delete language", Icon = "Close", Callback = function()
-					local cur = Astral.CurrentLanguage or "English"
-					local ok2 = false
-					pcall(function() if Astral.DeleteLanguage then ok2 = Astral.DeleteLanguage(cur) end end)
-					pcall(function() refreshLangUI() end)
-					pcall(function() Window:Notify({ Type = ok2 and "good" or "warning", Title = ok2 and "Deleted" or "Delete failed", Message = tostring(cur), Duration = 2 }) end)
-				end })
 				-- 3) THEMES: presets + custom + background + transparency (merged)
 				local themeSub = STab:AddSubTab({ Name = "Themes", Icon = "Chromatic Key1" })
 				themeSub:AddSelector({ Title = "Theme", Description = "Recolor the whole UI live.", Options = { "Dark", "Midnight", "Purple", "Crimson", "Forest", "Ocean", "Sunset", "Rose", "Slate", "Coffee" }, Icon = "Chromatic Key1", Callback = function(v)
