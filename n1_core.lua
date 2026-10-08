@@ -6538,6 +6538,14 @@ function Astral:MakeWindow(config)
 			local pad = IsMobile and 6 or 10
 			local gap = IsMobile and 6 or 10
 			local btnH = iconOnlyMode and (IsMobile and 48 or 64) or (IsMobile and 28 or 34)
+			if not iconOnlyMode then
+				for _, it in ipairs(items) do
+					if it and it.Title and string.find(tostring(it.Title), "%s") then
+						btnH = (IsMobile and 44 or 50)
+						break
+					end
+				end
+			end
 			local headerH = hasDesc and (IsMobile and 30 or 36) or (IsMobile and 18 or 22)
 			local rows = math.max(1, math.ceil(#items / columns))
 			local gridH = rows * btnH + (rows - 1) * gap
@@ -6720,6 +6728,7 @@ function Astral:MakeWindow(config)
 					BLabel.TextColor3 = themeColorFor("255,255,255", CurrentThemeName or "Dark")
 					BLabel.TextSize = IsMobile and 10 or 12
 					BLabel.TextXAlignment = Enum.TextXAlignment.Center
+					BLabel.TextWrapped = true
 					BLabel.TextTruncate = Enum.TextTruncate.AtEnd
 					BLabel.LayoutOrder = 2
 					BLabel.Parent = Content
