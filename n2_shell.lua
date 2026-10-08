@@ -2991,6 +2991,7 @@ function Astral:MakeWindow(config)
 						elseif v == "2 columns" then Window:SetLayoutMode("TwoColumn")
 						else Window:SetLayoutMode("Auto") end
 					end)
+					pcall(function() Window:Notify({ Type = "good", Title = "Layout", Message = tostring(v) .. " applied. Check another tab.", Duration = 3 }) end)
 				end })
 				displaySub:AddSlider({ Title = "UI transparency", Min = 0, Max = 70, Default = 0, Icon = "Badge Gear", Callback = function(v)
 					pcall(function() Window:SetTransparency(v / 100) end)
@@ -8863,6 +8864,9 @@ function Astral:MakeWindow(config)
 				end)
 			end
 		end)
+	end
+	function Window:GetLayoutMode()
+		return layoutMode
 	end
 
 	local CONFIG_FILE = "lumu_config.json"
