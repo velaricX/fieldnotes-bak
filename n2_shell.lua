@@ -2991,7 +2991,8 @@ function Astral:MakeWindow(config)
 						elseif v == "2 columns" then Window:SetLayoutMode("TwoColumn")
 						else Window:SetLayoutMode("Auto") end
 					end)
-					pcall(function() Window:Notify({ Type = "good", Title = "Layout", Message = tostring(v) .. " applied. Check another tab.", Duration = 3 }) end)
+					pcall(function() Window:Notify({ Type = "good", Title = "Layout", Message = tostring(v) .. " applied.", Duration = 3 }) end)
+					pcall(function() if tabs[1] then switchTab(tabs[1]) end end)
 				end })
 				displaySub:AddSlider({ Title = "UI transparency", Min = 0, Max = 70, Default = 0, Icon = "Badge Gear", Callback = function(v)
 					pcall(function() Window:SetTransparency(v / 100) end)
@@ -3627,7 +3628,6 @@ function Astral:MakeWindow(config)
 		-- Called on tab show, resize and mode switch so right-column
 		-- controls can never stay invisible.
 		local function refreshTabColumns()
-			print("[Astral] DBG refresh: mode=" .. tostring(layoutMode) .. " single=" .. tostring(isSingleColumnNow()) .. " elems=" .. tostring(#elements))
 			if isSingleColumnNow() then
 				LeftColumn.Size = UDim2.new(1, 0, 0, 0)
 				RightColumn.Visible = false
@@ -9188,7 +9188,7 @@ function Astral:MakeWindow(config)
 
 			-- Text
 			local TextFrame = Instance.new("Frame")
-TextFrame.Size = UDim2.new(1, IsMobile and -60 or -68, 0, hasActions and 38 or 34)
+			TextFrame.Size = UDim2.new(1, IsMobile and -92 or -110, 0, hasActions and 38 or 34)
 			TextFrame.Position = UDim2.new(0, IsMobile and 42 or 50, 0, hasActions and 6 or 8)
 			TextFrame.BackgroundTransparency = 1
 			TextFrame.ZIndex = 200
