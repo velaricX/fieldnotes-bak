@@ -2909,16 +2909,11 @@ function Astral:MakeWindow(config)
 			if pickerOpen or selectorOpen then return end
 			if not settingsTabData then
 				local STab = Window:MakeTab({ "Settings", "Badge Gear" })
-				-- 1) INFO: about + owners + discord invite
+				-- 1) INFO: big discord card
 				local infoSub = STab:AddSubTab({ Name = "Info", Icon = "Home" })
-				infoSub:AddLabel({ Title = "Lumu UI", Description = "Themes, background, status & info live here.", Icon = "Home" })
-				infoSub:AddLabel({ Title = "Owners", Description = "Velaric ΓÇó kismile ΓÇó Lucas ΓÇó Xu", Icon = "Home" })
-				infoSub:AddButton({ Title = "Discord invite", Description = "Copy the invite link.", Icon = "Checkmark", Callback = function()
-					local link = "https://discord.gg/RhQa6kZu9A"
-					local ok2 = false
-					pcall(function() if setclipboard then setclipboard(link); ok2 = true end end)
-					pcall(function() Window:Notify({ Type = ok2 and "good" or "warning", Title = ok2 and "Copied" or "Copy this", Message = link, Duration = 4 }) end)
-				end })
+				infoSub:AddDiscordCard({ FullWidth = true, ServerData = {
+					Description = "Official LumuHub Community ΓÇö Velaric ΓÇó kismile ΓÇó Lucas ΓÇó Xu",
+				} })
 				-- 2) TRANSLATION: custom packs, no Google. Hubs add words BEFORE CreateWindow.
 				local langSub = STab:AddSubTab({ Name = "Translation", Icon = "Home" })
 				langSub:AddLabel({ Title = "Language", Description = "Custom translations, no Google. Everything incl. dropdown options swaps live.", Icon = "Home" })
