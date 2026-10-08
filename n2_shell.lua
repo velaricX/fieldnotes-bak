@@ -3561,9 +3561,9 @@ function Astral:MakeWindow(config)
 			local forceSingleColumn = false
 			-- Forced layout mode: "Auto" follows width, "OneColumn"/"TwoColumn" force it
 			local function isSingleColumnNow()
-				if forceSingleColumn then return true end
 				if layoutMode == "OneColumn" then return true end
-			if layoutMode == "TwoColumn" then return false end
+				if layoutMode == "TwoColumn" then return false end
+				if forceSingleColumn then return true end
 			-- Invisible tabs report 0 width during build: fall back to the real
 			-- window width so columns never collapse to zero and hide content.
 			local w = PageScroll.AbsoluteSize.X
