@@ -51,7 +51,7 @@ local languageRefreshers = {} -- fn() list re-run on SetLanguage (dynamic texts)
 
 local function translateText(key)
 	local lang = Astral.Languages[Astral.CurrentLanguage]
-	if lang and lang[key] ~= nil then
+	if lang and lang[key] ~= nil and lang[key] ~= "" then
 		return lang[key]
 	end
 	return key
@@ -2779,6 +2779,16 @@ function Astral:MakeWindow(config)
 						pcall(function() if refreshLangUI then refreshLangUI() end end)
 					end })
 				end
+				local transCredit = langSub:AddLabel({ Title = "Translator", Description = "-", Icon = "Home" })
+				local function refreshCredit()
+					local lang = Astral.Languages[Astral.CurrentLanguage]
+					local who = lang and lang["TRANSLATOR"] or nil
+					pcall(function()
+						transCredit:SetDescription((who and who ~= "") and tostring(who) or "-")
+					end)
+				end
+				table.insert(languageRefreshers, refreshCredit)
+				refreshCredit()
 				local newLangBox = langSub:AddTextbox({ Title = "New language", Placeholder = "e.g. Portugues", Icon = "Home", Callback = function() end })
 				local keyBox = langSub:AddTextbox({ Title = "English word", Placeholder = "e.g. Farming", Icon = "Home", Callback = function() end })
 				local valBox = langSub:AddTextbox({ Title = "Translation", Placeholder = "e.g. Agricultura", Icon = "Home", Callback = function() end })
