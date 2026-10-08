@@ -8877,16 +8877,20 @@ function Astral:MakeWindow(config)
 			mode = "Auto"
 		end
 		layoutMode = mode
+		local n, err0 = 0, nil
 		for _, td in ipairs(tabs) do
-			pcall(function()
+			local ok, err = pcall(function()
 				if td.Refresh then td.Refresh() end
 			end)
+			if ok then n = n + 1 else err0 = err end
 		end
+		if err0 then warn("[Astral] SetLayoutMode: " .. tostring(err0)) end
 		task.delay(0.15, function()
 			for _, td in ipairs(tabs) do
-				pcall(function()
+				local ok, err = pcall(function()
 					if td.Refresh then td.Refresh() end
 				end)
+				if not ok then warn("[Astral] SetLayoutMode(2): " .. tostring(err)) end
 			end
 		end)
 	end
