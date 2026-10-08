@@ -3627,6 +3627,7 @@ function Astral:MakeWindow(config)
 		-- Called on tab show, resize and mode switch so right-column
 		-- controls can never stay invisible.
 		local function refreshTabColumns()
+			print("[Astral] DBG refresh: mode=" .. tostring(layoutMode) .. " single=" .. tostring(isSingleColumnNow()) .. " elems=" .. tostring(#elements))
 			if isSingleColumnNow() then
 				LeftColumn.Size = UDim2.new(1, 0, 0, 0)
 				RightColumn.Visible = false
@@ -8852,6 +8853,7 @@ function Astral:MakeWindow(config)
 			mode = "Auto"
 		end
 		layoutMode = mode
+		print("[Astral] DBG setlayout: " .. tostring(mode) .. " tabs=" .. tostring(#tabs))
 		local n, err0 = 0, nil
 		for _, td in ipairs(tabs) do
 			local ok, err = pcall(function()
