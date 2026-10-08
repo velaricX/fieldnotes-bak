@@ -3038,7 +3038,13 @@ function Astral:MakeWindow(config)
 				local statusSub = STab:AddSubTab({ Name = "Status", Icon = "timer" })
 				statusSub:AddToggle({ Title = "Show status panels", Default = true, Icon = "timer", Callback = function(s)
 					for _, sp in ipairs(statusPanels) do
-						pcall(function() sp.Panel.Visible = s end)
+						pcall(function()
+							if sp.Controller and sp.Controller.SetEnabled then
+								sp.Controller:SetEnabled(s)
+							else
+								sp.Panel.Visible = s
+							end
+						end)
 					end
 				end })
 				statusSub:AddButton({ Title = "Reset panel positions", Icon = "Badge Gear", Callback = function()
@@ -8925,6 +8931,13 @@ function Astral:MakeWindow(config)
 				if td.Refresh then td.Refresh() end
 			end)
 		end
+		task.delay(0.15, function()
+			for _, td in ipairs(tabs) do
+				pcall(function()
+					if td.Refresh then td.Refresh() end
+				end)
+			end
+		end)
 	end
 
 	local CONFIG_FILE = "lumu_config.json"
@@ -10002,6 +10015,10 @@ CountPillStroke.Color = themeColorFor("50,50,55", CurrentThemeName or "Dark")
 
 		if Window.ThemeName and Window.ThemeName ~= "Dark" then
 			applyThemeToGui(ScreenGui, AccentColor, "Dark", Window.ThemeName)
+		end
+
+		for _, sp in ipairs(statusPanels) do
+			if sp.Panel == Panel then sp.Controller = GameStatus end
 		end
 
 		return GameStatus
