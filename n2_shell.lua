@@ -3746,6 +3746,17 @@ function Astral:MakeWindow(config)
 			end)
 		end
 
+		-- re-tint the ACTIVE sub-tab pill on accent/theme change (it keeps a stale color otherwise)
+		onAccentChange(function(c)
+			pcall(function()
+				for _, st in ipairs(subTabs) do
+					if st.Index == currentSubTab then
+						st.Button.BackgroundColor3 = c
+					end
+				end
+			end)
+		end)
+
 		local tabData = {
 			Button = TabButton,
 			Corner = ButtonCorner,
